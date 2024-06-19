@@ -155,6 +155,12 @@ hmri_def.coreg_bias_flags.fwhm = [7 7];
 hmri_def.small_angle_approx = false; % CBS-specific change
 
 %--------------------------------------------------------------------------
+% Which model to use for B1-correction of MTsat
+%--------------------------------------------------------------------------
+hmri_def.MTsatB1CorrectionModel = 'helms'; % 'helms' or 'lipp'
+hmri_def.MTsatB1CorrectionHelmsC = 0.25; % value for 7T protocol from Olsson, et al. (MRM 2021) scaled from 180° to 130°
+
+%--------------------------------------------------------------------------
 % Ordinary Least Squares & fit at TE=0
 %--------------------------------------------------------------------------
 % create an Ordinary Least Squares R2* map. The ESTATICS model is applied
