@@ -1,4 +1,4 @@
-function [fR1, fR2s, fMT, fA, PPDw, PT1w, PMTw]  = hmri_create_MTProt(jobsubj) %#ok<*STOUT>
+function [fR1, fR2s, fMT, fA, PPDw, PT1w, PMTw, PR2s_param_error]  = hmri_create_MTProt(jobsubj) %#ok<*STOUT>
 %==========================================================================
 % This is hmri_create_MTProt, part of the hMRI-Toolbox.
 %
@@ -27,7 +27,8 @@ function [fR1, fR2s, fMT, fA, PPDw, PT1w, PMTw]  = hmri_create_MTProt(jobsubj) %
 %           defaults settings (PDproc & RF sensitivity bias correction)). 
 %   PPDw    average PD-weighted image filename (or OLS fit at TE=0 if fullOLS = true) 
 %   PT1w    average T1-weighted image filename (or OLS fit at TE=0 if fullOLS = true)  
-%   PMTw    average MT-weighted image filename (or OLS fit at TE=0 if fullOLS = true)  
+%   PMTw    average MT-weighted image filename (or OLS fit at TE=0 if fullOLS = true)
+%   PR2s_param_error    parameter error maps (if errormaps = true)
 %
 % OTHER USEFUL VARIABLES EXPLAINED
 %   P_mtw, P_pdw, P_t1w (from jobsubj.raw_mpm) are MTw, PDw, T1w series of
@@ -462,11 +463,6 @@ if mpm_params.proc.R2sOLS && any(mpm_params.estaticsR2s)
             PR2s_OLS_error{ccon}    = fullfile(calcpath,[outbasename '_' 'R2s_errorESTATICS' '.nii']);
             Ni = hmri_create_nifti(PR2s_OLS_error{ccon},V_pdw(1),dt,'Error map for R2s contrast');
             NEmap(ccon) = Ni;
-            
-            % this is unused
-            PR2s_OLS_mSNR    = fullfile(calcpath,[outbasename '_' 'R2s_mSNR' '.nii']);
-            Ni      = hmri_create_nifti(PR2s_OLS_mSNR,V_pdw(1),dt,'Standarized map for R2s contrast');
-            NSMmap = Ni;
         end
     end % init nifti objects for fullOLS case
     
@@ -595,7 +591,7 @@ if mpm_params.errormaps
     % set metadata are missing
     if (PDwidx && T1widx)
         % R1 error maps
-        PR2s_param_error.R1    = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qR1).suffix 'param_error.nii']);
+        PR2s_param_error.R1    = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qR1).suffix '_param_error.nii']);
         Ni = hmri_create_nifti(PR2s_param_error.R1,V_pdw(1),dt,['Error map for ' mpm_params.output(mpm_params.qR1).suffix 'param']);
         NEpara.R1 = nifti;
         NEpara.R1 = Ni;
@@ -606,7 +602,7 @@ if mpm_params.errormaps
         NSNRpara.R1 = Ni;
         
         % PD error maps
-        PR2s_param_error.PD    = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qPD).suffix 'param_error.nii']);
+        PR2s_param_error.PD    = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qPD).suffix '_param_error.nii']);
         Ni = hmri_create_nifti(PR2s_param_error.PD,V_pdw(1),dt,['Error map for ' mpm_params.output(mpm_params.qPD).suffix 'param']);
         NEpara.PD = nifti;
         NEpara.PD = Ni;
@@ -617,7 +613,7 @@ if mpm_params.errormaps
         NSNRpara.PD = Ni;
         if MTwidx
             % MT error maps
-            PR2s_param_error.MT    = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qMT).suffix 'param_error.nii']);
+            PR2s_param_error.MT    = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qMT).suffix '_param_error.nii']);
             Ni = hmri_create_nifti(PR2s_param_error.MT,V_pdw(1),dt,['Error map for ' mpm_params.output(mpm_params.qMT).suffix 'param']);
             NEpara.MT = nifti;
             NEpara.MT = Ni;
@@ -628,6 +624,8 @@ if mpm_params.errormaps
             NSNRpara.MT = Ni;
         end
     end
+else % ensure return value always exists
+    PR2s_param_error = struct();
 end
 
 %% =======================================================================%
@@ -686,6 +684,7 @@ for p = 1:dm(3)
             R1 = R1_unc;
         end
         
+        R1(R1<0) = 0;
         R1(isnan(R1)) = 0;
         scaleR1prethresh  = 1e6;  % thresholds are in 10^3 / s
         scaleR1postthresh = 1e-3; % output should be in / s
@@ -696,7 +695,7 @@ for p = 1:dm(3)
             Edata.PDw = hmri_read_vols(Verror(PDwidx),V_ref,p,mpm_params.interp);
             Edata.T1w = hmri_read_vols(Verror(T1widx),V_ref,p,mpm_params.interp);
             
-            dR1 = hmri_make_dR1(PDw,T1w,Edata.PDw,Edata.T1w,fa_pdw_rad,fa_t1w_rad,TR_pdw,TR_t1w,f_T,mpm_params.small_angle_approx);
+            dR1 = hmri_calc_dR1(PDw,T1w,Edata.PDw,Edata.T1w,fa_pdw_rad,fa_t1w_rad,TR_pdw,TR_t1w,f_T,mpm_params.small_angle_approx);
             
             if ISC.enabled&&~isempty(f_T)
                 % Use chain rule to include the imperfect spoiling 
@@ -801,7 +800,7 @@ for p = 1:dm(3)
             Edata.PDw = hmri_read_vols(Verror(PDwidx),V_ref,p,mpm_params.interp);
             Edata.T1w = hmri_read_vols(Verror(T1widx),V_ref,p,mpm_params.interp);
             
-            dPD = hmri_make_dPD(PDw,T1w,Edata.PDw,Edata.T1w,fa_pdw_rad,fa_t1w_rad,TR_pdw,TR_t1w,f_T,mpm_params.small_angle_approx);
+            dPD = hmri_calc_dPD(PDw,T1w,Edata.PDw,Edata.T1w,fa_pdw_rad,fa_t1w_rad,TR_pdw,TR_t1w,f_T,mpm_params.small_angle_approx);
             
             % truncate PD error maps
             dPD(isinf(dPD)) = 0;
@@ -845,7 +844,7 @@ for p = 1:dm(3)
                 mpm_params.small_angle_approx);
             MT = hmri_calc_MTsat(struct('data',MTw,'fa',fa_mtw_rad,'TR',TR_mtw,'B1',B1_mtw), A_forMT, R1_forMT);
 
-            % Use MT-pulse B1 map if available        
+            % Use MT-pulse B1 map if available
             if ~isempty(V_trans_MT) % separate B1 mapping data provided for MT pulse
                 f_T_MT = hmri_read_vols(V_trans_MT(2,:),Ni,p,mpm_params.interp)/100; % divide by 100, since p.u. maps
                 switch mpm_params.MTsatB1CorrectionModel
@@ -865,20 +864,20 @@ for p = 1:dm(3)
             % - f_T has been calculated using UNICORT *AND* the UNICORT.MT flag
             % is enabled (advanced user only! method not validated yet!)
             if (~isempty(f_T_MT))&&(~mpm_params.UNICORT.R1 || mpm_params.UNICORT.MT)
-                MT = hmri_correct_MTsat(MT,f_T_MT,mpm_params.MTsatB1CorrectionModel,mpm_params.MTsatB1CorrectionC);
+                [MT,dMTsatcorr] = hmri_correct_MTsat(MT,f_T_MT,mpm_params.MTsatB1CorrectionModel,mpm_params.MTsatB1CorrectionC);
             end
-            
-            % truncate MT maps
+
             MT(isnan(MT))=0;
             Nmap(mpm_params.qMT).dat(:,:,p) = max(min(MT,threshall.MT),-threshall.MT);
 
             if mpm_params.errormaps
                 Edata.MTw = hmri_read_vols(Verror(MTwidx),V_ref,p,mpm_params.interp);
                 
-                dMT = hmri_make_dMT(PDw,T1w,MTw,Edata.PDw,Edata.T1w,Edata.MTw,fa_pdw_rad,fa_t1w_rad,fa_mtw_rad,TR_pdw,TR_t1w,TR_mtw,mpm_params.small_angle_approx) * 100;
+                dMT = hmri_calc_dMT(PDw,T1w,MTw,Edata.PDw,Edata.T1w,Edata.MTw,fa_pdw_rad,fa_t1w_rad,fa_mtw_rad,TR_pdw,TR_t1w,TR_mtw,mpm_params.small_angle_approx) * 100;
                 
-                if (~isempty(f_T))&&(~mpm_params.UNICORT.R1 || mpm_params.UNICORT.MT)
-                    dMT = abs(hmri_correct_MTsat(dMT,f_T,mpm_params.MTsatB1CorrectionModel,mpm_params.MTsatB1CorrectionC));
+                if (~isempty(f_T_MT))&&(~mpm_params.UNICORT.R1 || mpm_params.UNICORT.MT)
+                    % use chain rule to include MTsat B1 correction in error maps
+                    dMT = dMT.*abs(dMTsatcorr);
                 end
                 
                 % truncate MT error maps
@@ -1122,8 +1121,11 @@ if mpm_params.errormaps
     % R1, PD, MT error maps
     outfields=fieldnames(PR2s_param_error)';
     for ccon = 1:length(outfields)
-        copyfile(PR2s_param_error.(outfields{ccon}), fullfile(supplpath, spm_file(PR2s_param_error.(outfields{ccon}),'filename')));
-        try copyfile([spm_str_manip(PR2s_param_error.(outfields{ccon}),'r') '.json'],fullfile(supplpath, [spm_file(PR2s_param_error.(outfields{ccon}),'basename') '.json'])); end
+        errormap_final = fullfile(supplpath, spm_file(PR2s_param_error.(outfields{ccon}),'filename'));
+        copyfile(PR2s_param_error.(outfields{ccon}), errormap_final);
+        try copyfile([spm_str_manip(errormap_final,'r') '.json'],fullfile(supplpath, [spm_file(errormap_final,'basename') '.json'])); end
+        PR2s_param_error.(outfields{ccon}) = errormap_final;
+        
         copyfile(P_mSNRscore.(outfields{ccon}), fullfile(supplpath, spm_file(P_mSNRscore.(outfields{ccon}),'filename')));
         try copyfile([spm_str_manip(P_mSNRscore.(outfields{ccon}),'r') '.json'],fullfile(supplpath, [spm_file(P_mSNRscore.(outfields{ccon}),'basename') '.json'])); end
     end
@@ -1216,7 +1218,7 @@ if(mpm_params.errormaps)
     outbasename = spm_file(mpm_params.input(mpm_params.PDwidx).fnam(1,:),'basename'); % for all output files
     
     % TODO: pass this filename to this function rather than generating it
-    PPD_error   = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qPD).suffix 'param_error.nii']);
+    PPD_error   = fullfile(calcpath,[outbasename '_' mpm_params.output(mpm_params.qPD).suffix '_param_error.nii']);
     PDerror     = spm_read_vols(spm_vol(PPD_error));
 end
 % Bias-field correction of masked A map
