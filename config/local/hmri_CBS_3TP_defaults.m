@@ -362,10 +362,12 @@ hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_0p8.P2_a = [18.059     -24.6883    
 hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_0p8.P2_b = [-0.0447      0.0461      0.9833];
 hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_0p8.small_angle_approx = false;
 hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_0p8.enabled = hmri_def.imperfectSpoilCorr.enabled;
-% 3) CBS Prisma protocol 1.0 mm (KP 20200913)
+% 3) CBS Prisma protocol 1.0 mm (KP 20200913 recalculated 20250521)
 hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.tag = 'kp_mtflash3d_v1g_1p0';
-hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.P2_a = [22.7053     -31.4013      15.6496];
-hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.P2_b = [-0.0559      0.0588      0.9786];
+hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.P2_a = [20.1623     -27.6449       13.789];
+hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.P2_b = [-0.0496      0.0516      0.9812];
+% hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.P2_a = [22.7053     -31.4013      15.6496];
+% hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.P2_b = [-0.0559      0.0588      0.9786];
 hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.small_angle_approx = false;
 hmri_def.imperfectSpoilCorr.kp_mtflash3d_v1g_1p0.enabled = hmri_def.imperfectSpoilCorr.enabled;
 % Unknown protocol
