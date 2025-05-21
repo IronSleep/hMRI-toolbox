@@ -321,7 +321,7 @@ hmri_def.MPMacq.tag    = 'v2k';
 % as these names are used to define a structure fieldname with the protocol 
 % parameters.
 %
-% 1) IronSleep TH2
+% 1) IronSleep TH2  [recalculated KP 20250521]
 hmri_def.MPMacq_set.names{1} = 'Dynamic_pTx_0p6';
 hmri_def.MPMacq_set.tags{1}  = 'Dynamic_pTx_0p6';
 hmri_def.MPMacq_set.vals{1}  = [22.4         22.4            7           22];
@@ -346,8 +346,10 @@ hmri_def.MPMacq_set.vals{1}  = [22.4         22.4            7           22];
 hmri_def.imperfectSpoilCorr.enabled = true;
 
 hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.tag = 'Dynamic_pTx_0p6';
-hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_a = [45.0433     -57.7857      20.4482];
-hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_b = [-0.068      0.0743      0.9771];
+% hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_a = [45.0433     -57.7857      20.4482];
+% hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_b = [-0.068      0.0743      0.9771];
+hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_a = [35.5632     -44.9907      15.9656];
+hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_b = [-0.0548      0.0589      0.9819];
 hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.small_angle_approx = false;
 hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.enabled = hmri_def.imperfectSpoilCorr.enabled;
 
