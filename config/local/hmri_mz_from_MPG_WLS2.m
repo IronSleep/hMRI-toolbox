@@ -442,8 +442,10 @@ hmri_def.imperfectSpoilCorr.Imperfect_spoiling_calc_ver0.small_angle_approx = tr
 hmri_def.imperfectSpoilCorr.Imperfect_spoiling_calc_ver0.enabled = hmri_def.imperfectSpoilCorr.enabled;
 % 9) Kerrin data for Ironsleep protocol
 hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.tag = 'Dynamic_pTx_0p6';
-hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_a = [45.0433     -57.7857      20.4482];
-hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_b = [-0.068      0.0743      0.9771];
+% hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_a = [45.0433     -57.7857      20.4482];
+% hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_b = [-0.068      0.0743      0.9771];
+hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_a = [35.5632     -44.9907      15.9656];
+hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.P2_b = [-0.0548      0.0589      0.9819];
 hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.small_angle_approx = false;
 hmri_def.imperfectSpoilCorr.Dynamic_pTx_0p6.enabled = hmri_def.imperfectSpoilCorr.enabled;
 % Unknown protocol
