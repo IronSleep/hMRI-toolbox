@@ -61,7 +61,7 @@ switch(b1map_params.b1type)
 
         descrip = 'SIEMENS tfl_b1map protocol';
 
-        P_trans  = calc_scaled_b1map(jobsubj, b1map_params, offset, scaling, descrip);
+        P_trans  = calc_scaled_b1map(jobsubj, b1map_params, [scaling offset], descrip);
 
     case 'rf_map'
         % processing B1 map from rf_map data
@@ -70,14 +70,14 @@ switch(b1map_params.b1type)
         % the formula (abs(Vol1)-2048)*180/2048 would result in an absolute FA map
         alphanom = get_metadata_val(P,'FlipAngle');
         scaling = 180*100/(alphanom*2048); % *100/alpha to get p.u.
-        offset = -2048;
+        offset = -2048*scaling;
 
         descrip = 'SIEMENS rf_map protocol';
 
-        P_trans  = calc_scaled_b1map(jobsubj, b1map_params, offset, scaling, descrip);
+        P_trans  = calc_scaled_b1map(jobsubj, b1map_params, [scaling offset], descrip);
 
     case 'pre_processed_B1'
-        P_trans  = calc_scaled_b1map(jobsubj, b1map_params, 0, b1map_params.scafac, sprintf('Pre-processed B1 map rescaled with factor %f', b1map_params.scafac));
+        P_trans  = calc_scaled_b1map(jobsubj, b1map_params, b1map_params.scafac, sprintf('Pre-processed B1 map rescaled with factors %s', join(string(b1map_params.scafac))));
 
     otherwise
         hmri_log(sprintf('WARNING: unknown B1 type, no B1 map calculation performed.'),b1map_params.defflags);
@@ -97,14 +97,9 @@ end
 %   otherwise copyfile does not find the files!!
 
 if ~isempty(P_trans)
-    if ~isfield(jobsubj,'b1_suffix')
-        b1_suffix = '';
-    else
-        b1_suffix = jobsubj.b1_suffix;
-    end
     P_trans = spm_file(P_trans,'number','');
-    P_trans_copy{1} = fullfile(jobsubj.path.b1respath, spm_file(spm_file(P_trans(1,:), 'filename'),'suffix',b1_suffix));
-    P_trans_copy{2} = fullfile(jobsubj.path.b1respath, spm_file(spm_file(P_trans(2,:), 'filename'),'suffix',b1_suffix));
+    P_trans_copy{1} = fullfile(jobsubj.path.b1respath, spm_file(P_trans(1,:), 'filename'));
+    P_trans_copy{2} = fullfile(jobsubj.path.b1respath, spm_file(P_trans(2,:), 'filename'));
     copyfile(deblank(P_trans(1,:)), P_trans_copy{1});
     try copyfile([spm_str_manip(P_trans(1,:),'r') '.json'],[spm_str_manip(P_trans_copy{1},'r') '.json']); end %#ok<*TRYNC>
     copyfile(deblank(P_trans(2,:)), P_trans_copy{2});
@@ -547,7 +542,7 @@ end
 % B1 map scaling
 % Written by Tobias Leutritz; adapted by Luke Edwards
 %=========================================================================%
-function P_trans = calc_scaled_b1map(jobsubj, b1map_params, offset, scaling, descrip)
+function P_trans = calc_scaled_b1map(jobsubj, b1map_params, scaling, descrip)
 
 json = hmri_get_defaults('json');
 
@@ -571,7 +566,7 @@ try copyfile([spm_str_manip(V2.fname,'r') '.json'],[spm_str_manip(anat_fname,'r'
 V2 = spm_vol(anat_fname);
 
 % generating the map
-B1map_norm = (abs(Vol1)+offset)*scaling;
+B1map_norm = polyval(scaling,Vol1);
 
 % masking; mask is written out to folder of the anatomical image
 % (this should be outpath due to copying the anatomical file above)
@@ -696,10 +691,10 @@ switch b1_protocol
     case 'pre_processed_B1'
         b1map_params.scafac = jobsubj.b1_type.(b1_protocol).scafac;
         if ~isempty(b1map_params.b1input)
-            if b1map_params.scafac == 1
+            if length(b1map_params.scafac)==2 && b1map_params.scafac(1) == 1 && b1map_params.scafac(2) == 0
                 hmri_log(sprintf('Preprocessed B1 map available. \nAssuming it is in percent units of the nominal flip angle. \nNo calculation required.'),b1map_params.defflags);
             else
-                hmri_log(sprintf('Preprocessed B1 map available. \nScaling factor provided: %f. Assuming B1 map will be expressed \nin p.u. of the nominal flip angle after rescaling.', b1map_params.scafac),b1map_params.defflags);
+                hmri_log(sprintf('Preprocessed B1 map available. \nNon unity or higher order scaling factors (%s) or nonzero offset (%f) provided. Assuming B1 map will be expressed \nin p.u. of the nominal flip angle after rescaling.', join(string(b1map_params.scafac(1:end-1))), b1map_params.scafac(end)),b1map_params.defflags);
             end
         end
 
