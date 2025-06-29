@@ -54,7 +54,7 @@ hmri_def.scanner = 'terra' ; % e.g. 'prisma', 'allegra', 'terra', 'achieva', ...
 % be convenient if one desires to have a closer look at intermediate
 % processing steps. Otherwise "cleanup = true" is recommended for saving
 % disk space.
-hmri_def.cleanup = true;
+hmri_def.cleanup = false;
 % settings for JSON metadata: by default, separate JSON files are used to
 % store the metadata (information on data acquisition and processing,
 % tracking of input and output files), as JSON-formatted, tab-indented
